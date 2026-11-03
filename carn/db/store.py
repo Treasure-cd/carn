@@ -3,6 +3,9 @@ from datetime import datetime, timezone
 
 from carn.models import Package
 
+def _now() -> str:
+    return datetime.now(timezone.utc).isoformat(timespec="seconds")
+
 _UPSERT = """
 INSERT INTO packages
     (source, name, version, summary, homepage, size_kb, manual, baseline, first_seen, last_seen)
@@ -20,7 +23,7 @@ ON CONFLICT(source, name) DO UPDATE SET
 
 
 def sync_packages(conn: sqlite3.Connection, source: str, packages: list[Package]) -> None:
-    now = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    now = _now()
     rows = [
         (
             p.source, p.name, p.version, p.summary, p.homepage, p.size_kb,
@@ -36,3 +39,17 @@ def sync_packages(conn: sqlite3.Connection, source: str, packages: list[Package]
             (now, source),
         )
         conn.executemany(_UPSERT, rows)
+
+def annotate(conn: sqlite3.Connection, source: str, name: str, note: str) -> None:
+    """Set (or overwrite) the note for a package."""
+    with conn:
+        conn.execute(
+            """
+            INSERT INTO annotations (source, name, note, updated_at)
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT(source, name) DO UPDATE SET
+                note       = excluded.note,
+                updated_at = excluded.updated_at
+            """,
+            (source, name, note, _now()),
+        )
