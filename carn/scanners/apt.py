@@ -1,6 +1,8 @@
 from carn.models import Package
 from carn.scanners.base import Scanner, run
 
+# TODO: set baseline=1 for packages listed in /var/log/installer/initial-status.gz
+
 # one line per package, tab-separated
 _FORMAT = (
     "${Package}\t${Version}\t${Installed-Size}\t"
