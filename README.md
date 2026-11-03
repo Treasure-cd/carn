@@ -57,4 +57,4 @@ apt, snap
 
 - Pin a package into the default view even if it's baseline (e.g. firefox)
 - Tags on annotations
-- Tkinter GUI over `list_packages`, `annotate` and `sync_all`
+- NiceGUI over `list_packages`, `annotate` and `sync_all`
