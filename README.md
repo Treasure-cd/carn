@@ -20,7 +20,7 @@ python3 -m carn note apt docker-ce containers for local dev
 | `sync` | Runs every available scanner and updates the db. Prints one status line per source. |
 | `list [search]` | Shows packages. Default view is things you installed yourself. |
 | `list -a / --all` | Includes manual packages that shipped with the OS (the baseline). |
-| `list -s / --source` | Filters to one source (`apt`, `snap`, ...). |
+| `list -s / --source` | Filters to one source (`apt`, `snap`, `flatpak`, `pipx`). |
 | `note <source> <name> <text>` | Saves why you installed something. Overwrites any earlier note. Quotes are optional. |
 
 ## How it works
