@@ -6,3 +6,15 @@ Project creation
 Reverse search around CLI
 Description of each package via tldr
 Dashboard.
+
+
+carn/
+├── carn/
+│   ├── __init__.py
+│   ├── models.py            # the Package dataclass (the shared shape)
+│   ├── scanners/
+│   │   ├── __init__.py      # registry: collects all scanners (later)
+│   │   ├── base.py          # Scanner interface + subprocess helper
+│   │   ├── apt.py           # <- we start here
+│   │   └── snap.py          # <- next
+│   └── db/                  # sqlite stuff (later)
