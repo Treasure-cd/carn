@@ -1,7 +1,35 @@
 from carn.models import Package
 from carn.scanners.base import Scanner, run
+from datetime import datetime, timedelta
+import glob
+import gzip
+import re
 
-# TODO: set baseline=1 for packages listed in /var/log/installer/initial-status.gz
+_INSTALL_EVENT = re.compile(r"(\S+ \S+) install (\S+?)(?::\w+)? ")
+BASELINE_WINDOW = timedelta(hours=24)
+
+
+def _baseline_names() -> set[str] | None:
+    """Packages first installed within 24h of the oldest dpkg log event."""
+    first: dict[str, datetime] = {}
+    for path in glob.glob("/var/log/dpkg.log*"):
+        opener = gzip.open if path.endswith(".gz") else open
+        try:
+            with opener(path, "rt", errors="replace") as f:
+                for line in f:
+                    m = _INSTALL_EVENT.match(line)
+                    if not m:
+                        continue
+                    ts = datetime.strptime(m.group(1), "%Y-%m-%d %H:%M:%S")
+                    name = m.group(2)
+                    if name not in first or ts < first[name]:
+                        first[name] = ts
+        except OSError:
+            continue
+    if not first:
+        return None
+    cutoff = min(first.values()) + BASELINE_WINDOW
+    return {n for n, ts in first.items() if ts <= cutoff}
 
 # one line per package, tab-separated
 _FORMAT = (
@@ -16,14 +44,15 @@ class AptScanner(Scanner):
 
     def scan(self) -> list[Package]:
         manual = self._manual_names()
+        baseline = _baseline_names()
         raw = run(["dpkg-query", "-W", "-f", _FORMAT])
-        return [p for line in raw.splitlines() if (p := self._parse(line, manual))]
+        return [p for line in raw.splitlines() if (p := self._parse(line, manual, baseline))]
 
     def _manual_names(self) -> set[str]:
         return set(run(["apt-mark", "showmanual"]).split())
 
     @staticmethod
-    def _parse(line: str, manual: set[str]) -> Package | None:
+    def _parse(line: str, manual: set[str], baseline: set[str] | None) -> Package | None:
         parts = line.split("\t")
         if len(parts) != 6:
             return None
@@ -39,6 +68,7 @@ class AptScanner(Scanner):
             homepage=homepage,
             size_kb=int(size) if size.isdigit() else None,
             manual=base in manual or name in manual,
+            baseline=None if baseline is None else base in baseline,
         )
 
 
