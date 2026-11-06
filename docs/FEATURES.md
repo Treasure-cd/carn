@@ -30,4 +30,5 @@ Additional feature:
 Reverse search, we can lookfor packages we have based on keywords.
 Description of each package from somewhere like tldr pages.
 
-GUI is done in ZeroGUI.
+
+nicegui

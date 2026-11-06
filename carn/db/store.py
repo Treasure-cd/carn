@@ -40,8 +40,20 @@ def sync_packages(conn: sqlite3.Connection, source: str, packages: list[Package]
         )
         conn.executemany(_UPSERT, rows)
 
+def delete_annotation(conn: sqlite3.Connection, source: str, name: str) -> None:
+    with conn:
+        conn.execute(
+            "DELETE FROM annotations WHERE source = ? AND name = ?", (source, name)
+        )
+
+
 def annotate(conn: sqlite3.Connection, source: str, name: str, note: str) -> None:
     """Set (or overwrite) the note for a package."""
+    note = note.strip()
+    if not note:
+        delete_annotation(conn, source, name)
+        return
+
     with conn:
         conn.execute(
             """
@@ -52,4 +64,42 @@ def annotate(conn: sqlite3.Connection, source: str, name: str, note: str) -> Non
                 updated_at = excluded.updated_at
             """,
             (source, name, note, _now()),
+        )
+
+
+def create_project(conn: sqlite3.Connection, name: str, description: str = "") -> int:
+    with conn:
+        cur = conn.execute(
+            "INSERT INTO projects (name, description, created_at) VALUES (?, ?, ?)",
+            (name.strip(), description.strip(), _now()),
+        )
+    return cur.lastrowid
+
+
+def update_project(conn: sqlite3.Connection, project_id: int, name: str, description: str) -> None:
+    with conn:
+        conn.execute(
+            "UPDATE projects SET name = ?, description = ? WHERE id = ?",
+            (name.strip(), description.strip(), project_id),
+        )
+
+
+def delete_project(conn: sqlite3.Connection, project_id: int) -> None:
+    with conn:
+        conn.execute("DELETE FROM projects WHERE id = ?", (project_id,))
+
+
+def add_to_project(conn: sqlite3.Connection, project_id: int, source: str, name: str) -> None:
+    with conn:
+        conn.execute(
+            "INSERT OR IGNORE INTO project_packages (project_id, source, name) VALUES (?, ?, ?)",
+            (project_id, source, name),
+        )
+
+
+def remove_from_project(conn: sqlite3.Connection, project_id: int, source: str, name: str) -> None:
+    with conn:
+        conn.execute(
+            "DELETE FROM project_packages WHERE project_id = ? AND source = ? AND name = ?",
+            (project_id, source, name),
         )
