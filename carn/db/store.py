@@ -8,17 +8,22 @@ def _now() -> str:
 
 _UPSERT = """
 INSERT INTO packages
-    (source, name, version, summary, homepage, size_kb, manual, baseline, first_seen, last_seen)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    (source, name, version, summary, homepage, size_kb, manual, baseline,
+     section, install_date, first_seen, last_seen)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 ON CONFLICT(source, name) DO UPDATE SET
-    version    = excluded.version,
-    summary    = excluded.summary,
-    homepage   = excluded.homepage,
-    size_kb    = excluded.size_kb,
-    manual     = excluded.manual,
-    baseline   = COALESCE(packages.baseline, excluded.baseline),
-    last_seen  = excluded.last_seen,
-    removed_at = NULL
+    version      = excluded.version,
+    summary      = excluded.summary,
+    homepage     = excluded.homepage,
+    size_kb      = excluded.size_kb,
+    manual       = excluded.manual,
+    baseline     = COALESCE(packages.baseline, excluded.baseline),
+    section      = COALESCE(excluded.section, packages.section),
+    install_date = CASE
+        WHEN packages.install_date IS NULL OR excluded.install_date < packages.install_date
+        THEN excluded.install_date ELSE packages.install_date END,
+    last_seen    = excluded.last_seen,
+    removed_at   = NULL
 """
 
 
@@ -29,6 +34,7 @@ def sync_packages(conn: sqlite3.Connection, source: str, packages: list[Package]
             p.source, p.name, p.version, p.summary, p.homepage, p.size_kb,
             None if p.manual is None else int(p.manual),
             None if p.baseline is None else int(p.baseline),
+            p.section or None, p.install_date,
             now, now,
         )
         for p in packages

@@ -27,8 +27,8 @@ def list_packages(
     order = "(a.note IS NULL), p.source, p.name" if annotated_first else "p.source, p.name"
 
     sql = f"""
-        SELECT p.source, p.name, p.version, p.summary, p.homepage, p.size_kb,
-           p.first_seen, p.removed_at, a.note
+        SELECT p.source, p.name, p.version, p.summary, p.homepage, p.section, p.install_date,
+               p.size_kb, p.first_seen, p.removed_at, a.note
         FROM packages p
         LEFT JOIN annotations a ON a.source = p.source AND a.name = p.name
         WHERE {' AND '.join(where)}

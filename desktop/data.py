@@ -7,6 +7,12 @@ from carn.db.schema import connect
 from carn.sync import ALL_SCANNERS, sync_all
 
 SOURCES = [s.name for s in ALL_SCANNERS]
+_TEMPLATES = {s.name: s.install_template for s in ALL_SCANNERS}
+
+
+def install_cmd(source: str, name: str) -> str:
+    template = _TEMPLATES.get(source, '')
+    return template.format(name=name) if template else ''
 
 
 def installed(*, search=None, source=None, show_all=False) -> list[dict]:

@@ -18,6 +18,7 @@ def _seed_names() -> set[str] | None:
 class SnapScanner(Scanner):
     name = "snap"
     binary = "snap"
+    install_template = "sudo snap install {name}"
 
     def scan(self) -> list[Package]:
         raw = run(["snap", "debug", "api", "/v2/snaps"])
@@ -40,6 +41,7 @@ class SnapScanner(Scanner):
             size_kb=size // 1024 if isinstance(size, int) else None,
             baseline=None if seed is None else s["name"] in seed,
             manual=s.get("type") == "app" and bool(s.get("apps")) and not s["name"].startswith("mesa-"),
+            install_date=(s.get("install-date") or "")[:10] or None,
         )
 
 

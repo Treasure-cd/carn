@@ -34,6 +34,18 @@ def _open_detail(row: dict) -> None:
         if row.get('homepage'):
             _field('Homepage', row['homepage'])
         _field('Size', _size(row.get('size_kb')))
+        if row.get('section'):
+            _field('Section', row['section'])
+        _field('Installed', row.get('install_date') or 'unknown')
+        cmd = data.install_cmd(row['source'], row['name'])
+        if cmd:
+            ui.label('Install command').classes('text-xs uppercase text-grey-6 mt-3')
+            with ui.row().classes('w-full items-center no-wrap'):
+                ui.label(cmd).classes('text-sm font-mono grow break-all')
+                ui.button(
+                    icon='content_copy',
+                    on_click=lambda: (ui.clipboard.write(cmd), ui.notify('Copied')),
+                ).props('flat dense round size=sm')
         _field('First seen', (row.get('first_seen') or '')[:10] or 'unknown')
         projs = data.projects_of(row['source'], row['name'])
         _field('In projects', ', '.join(projs) if projs else 'None')

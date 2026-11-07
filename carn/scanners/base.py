@@ -22,6 +22,7 @@ def run(cmd: list[str]) -> str:
 class Scanner(ABC):
     name: str # Label stored in Package.source
     binary: str # cli it depends on
+    install_template: str = ""   # e.g. "sudo apt install {name}"; shown in the GUI
 
     def available(self) -> bool:
         return shutil.which(self.binary) is not None

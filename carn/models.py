@@ -11,3 +11,5 @@ class Package:
     size_kb: int | None = None
     baseline: bool | None = None # True, shipped with the OS, None, can't define
     manual: bool | None = None   # True = you installed it, False = pulled in as a dependency, None = unknown
+    section: str = ""                 # apt: devel, web, ... empty if the source has none
+    install_date: str | None = None   # YYYY-MM-DD, best effort

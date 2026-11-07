@@ -7,6 +7,7 @@ _COLUMNS = "application,name,version,branch,description"
 class FlatpakScanner(Scanner):
     name = "flatpak"
     binary = "flatpak"
+    install_template = "flatpak install {name}"
 
     def scan(self) -> list[Package]:
         apps = set(run(["flatpak", "list", "--app", "--columns=application"]).split())
