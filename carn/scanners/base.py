@@ -1,6 +1,8 @@
 import shutil
 import subprocess
 from abc import ABC, abstractmethod
+from datetime import datetime
+from pathlib import Path
 
 from carn.models import Package
 
@@ -30,3 +32,16 @@ class Scanner(ABC):
     @abstractmethod
     def scan(self) -> list[Package]:
         ...
+
+
+def mtime_date(st) -> str:
+    """YYYY-MM-DD from an os.stat result."""
+    return datetime.fromtimestamp(st.st_mtime).strftime("%Y-%m-%d")
+
+
+def tilde(path: Path) -> str:
+    """/home/me/x -> ~/x, for display."""
+    try:
+        return "~/" + str(path.relative_to(Path.home()))
+    except ValueError:
+        return str(path)

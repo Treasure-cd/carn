@@ -6,9 +6,13 @@ from carn.scanners.base import Scanner, ScannerError
 from carn.scanners.snap import SnapScanner
 from carn.scanners.flatpak import FlatpakScanner
 from carn.scanners.pipx import PipxScanner
+from carn.scanners.localbin import LocalBinScanner
+from carn.scanners.appimage import AppImageScanner
 
-ALL_SCANNERS: list[Scanner] = [AptScanner(), SnapScanner(), FlatpakScanner(), PipxScanner()]
-
+ALL_SCANNERS: list[Scanner] = [
+    AptScanner(), SnapScanner(), FlatpakScanner(), PipxScanner(),
+    LocalBinScanner(), AppImageScanner(),
+]
 
 def sync_all(conn: sqlite3.Connection) -> dict[str, str]:
     """Scan every available source into the db. Returns {source: status}."""
