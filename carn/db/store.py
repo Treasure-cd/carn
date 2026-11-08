@@ -46,20 +46,26 @@ def sync_packages(conn: sqlite3.Connection, source: str, packages: list[Package]
         )
         conn.executemany(_UPSERT, rows)
 
-def delete_annotation(conn: sqlite3.Connection, source: str, name: str) -> None:
-    with conn:
-        conn.execute(
-            "DELETE FROM annotations WHERE source = ? AND name = ?", (source, name)
-        )
+STATUSES = ("keep", "review", "remove")
+
+
+def _prune(conn: sqlite3.Connection, source: str, name: str) -> None:
+    """Drop the annotation row once it has nothing left in it."""
+    conn.execute(
+        """
+        DELETE FROM annotations
+        WHERE source = ? AND name = ? AND note = '' AND status IS NULL
+          AND NOT EXISTS (
+              SELECT 1 FROM tags t
+              WHERE t.source = annotations.source AND t.name = annotations.name
+          )
+        """,
+        (source, name),
+    )
 
 
 def annotate(conn: sqlite3.Connection, source: str, name: str, note: str) -> None:
-    """Set (or overwrite) the note for a package."""
-    note = note.strip()
-    if not note:
-        delete_annotation(conn, source, name)
-        return
-
+    """Set (or overwrite) the note (the 'why'). Leaves status and tags untouched."""
     with conn:
         conn.execute(
             """
@@ -69,9 +75,90 @@ def annotate(conn: sqlite3.Connection, source: str, name: str, note: str) -> Non
                 note       = excluded.note,
                 updated_at = excluded.updated_at
             """,
-            (source, name, note, _now()),
+            (source, name, note.strip(), _now()),
         )
+        _prune(conn, source, name)
 
+
+def save_annotation(
+    conn: sqlite3.Connection, source: str, name: str,
+    note: str, status: str | None, tags: list[str],
+) -> None:
+    """Set note, status and tags together (what the GUI editor saves)."""
+    status = status if status in STATUSES else None
+    tags = sorted({t.strip().lower().replace(",", " ") for t in tags if t.strip()})
+    with conn:
+        conn.execute(
+            """
+            INSERT INTO annotations (source, name, note, status, updated_at)
+            VALUES (?, ?, ?, ?, ?)
+            ON CONFLICT(source, name) DO UPDATE SET
+                note       = excluded.note,
+                status     = excluded.status,
+                updated_at = excluded.updated_at
+            """,
+            (source, name, note.strip(), status, _now()),
+        )
+        conn.execute("DELETE FROM tags WHERE source = ? AND name = ?", (source, name))
+        conn.executemany(
+            "INSERT INTO tags (source, name, tag) VALUES (?, ?, ?)",
+            [(source, name, t) for t in tags],
+        )
+        _prune(conn, source, name)
+
+
+def delete_annotation(conn: sqlite3.Connection, source: str, name: str) -> None:
+    with conn:
+        conn.execute("DELETE FROM annotations WHERE source = ? AND name = ?", (source, name))
+        conn.execute("DELETE FROM tags WHERE source = ? AND name = ?", (source, name))
+
+def annotate(conn: sqlite3.Connection, source: str, name: str, note: str) -> None:
+    """Set (or overwrite) the note (the 'why'). Leaves status and tags untouched."""
+    with conn:
+        conn.execute(
+            """
+            INSERT INTO annotations (source, name, note, updated_at)
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT(source, name) DO UPDATE SET
+                note       = excluded.note,
+                updated_at = excluded.updated_at
+            """,
+            (source, name, note.strip(), _now()),
+        )
+        _prune(conn, source, name)
+
+
+def save_annotation(
+    conn: sqlite3.Connection, source: str, name: str,
+    note: str, status: str | None, tags: list[str],
+) -> None:
+    """Set note, status and tags together (what the GUI editor saves)."""
+    status = status if status in STATUSES else None
+    tags = sorted({t.strip().lower().replace(",", " ") for t in tags if t.strip()})
+    with conn:
+        conn.execute(
+            """
+            INSERT INTO annotations (source, name, note, status, updated_at)
+            VALUES (?, ?, ?, ?, ?)
+            ON CONFLICT(source, name) DO UPDATE SET
+                note       = excluded.note,
+                status     = excluded.status,
+                updated_at = excluded.updated_at
+            """,
+            (source, name, note.strip(), status, _now()),
+        )
+        conn.execute("DELETE FROM tags WHERE source = ? AND name = ?", (source, name))
+        conn.executemany(
+            "INSERT INTO tags (source, name, tag) VALUES (?, ?, ?)",
+            [(source, name, t) for t in tags],
+        )
+        _prune(conn, source, name)
+
+
+def delete_annotation(conn: sqlite3.Connection, source: str, name: str) -> None:
+    with conn:
+        conn.execute("DELETE FROM annotations WHERE source = ? AND name = ?", (source, name))
+        conn.execute("DELETE FROM tags WHERE source = ? AND name = ?", (source, name))
 
 def create_project(conn: sqlite3.Connection, name: str, description: str = "") -> int:
     with conn:

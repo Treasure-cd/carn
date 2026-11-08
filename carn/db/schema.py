@@ -25,8 +25,16 @@ CREATE TABLE IF NOT EXISTS annotations (
     source      TEXT NOT NULL,
     name        TEXT NOT NULL,
     note        TEXT NOT NULL,
+    status      TEXT,                   -- keep, review, remove, or NULL
     updated_at  TEXT NOT NULL,
     PRIMARY KEY (source, name)
+);
+
+CREATE TABLE IF NOT EXISTS tags (
+    source      TEXT NOT NULL,
+    name        TEXT NOT NULL,
+    tag         TEXT NOT NULL,
+    PRIMARY KEY (source, name, tag)
 );
 
 CREATE TABLE IF NOT EXISTS projects (
@@ -45,14 +53,18 @@ CREATE TABLE IF NOT EXISTS project_packages (
 """
 
 
-_NEW_COLUMNS = {"section": "TEXT", "install_date": "TEXT"}
+_NEW_COLUMNS = {
+    "packages": {"section": "TEXT", "install_date": "TEXT"},
+    "annotations": {"status": "TEXT"},
+}
 
 
 def _migrate(conn: sqlite3.Connection) -> None:
-    have = {r["name"] for r in conn.execute("PRAGMA table_info(packages)")}
-    for col, typ in _NEW_COLUMNS.items():
-        if col not in have:
-            conn.execute(f"ALTER TABLE packages ADD COLUMN {col} {typ}")
+    for table, cols in _NEW_COLUMNS.items():
+        have = {r["name"] for r in conn.execute(f"PRAGMA table_info({table})")}
+        for col, typ in cols.items():
+            if col not in have:
+                conn.execute(f"ALTER TABLE {table} ADD COLUMN {col} {typ}")
     conn.commit()
 
 

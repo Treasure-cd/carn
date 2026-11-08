@@ -15,11 +15,12 @@ def install_cmd(source: str, name: str) -> str:
     return template.format(name=name) if template else ''
 
 
-def installed(*, search=None, source=None, show_all=False) -> list[dict]:
+def installed(*, search=None, source=None, show_all=False, status=None) -> list[dict]:
     with closing(connect()) as conn:
         rows = queries.list_packages(
             conn,
             source=source or None,
+            status=status or None,
             show_all=show_all,
             search=search or None,
             annotated_first=True,
@@ -27,10 +28,10 @@ def installed(*, search=None, source=None, show_all=False) -> list[dict]:
         return [dict(r) for r in rows]
 
 
-def notes(*, search=None) -> list[dict]:
+def notes(*, search=None, status=None) -> list[dict]:
     with closing(connect()) as conn:
-        return [dict(r) for r in queries.list_annotated(conn, search=search or None)]
-
+        return [dict(r) for r in queries.list_annotated(
+            conn, search=search or None, status=status or None)]
 
 def find_packages(search: str) -> list[dict]:
     """For the Add note picker: any scanned package, baseline included."""
@@ -39,10 +40,14 @@ def find_packages(search: str) -> list[dict]:
         return [dict(r) for r in rows]
 
 
-def save_note(source: str, name: str, note: str) -> None:
+def save_annotation(source: str, name: str, note: str, status: str | None, tags: list[str]) -> None:
     with closing(connect()) as conn:
-        store.annotate(conn, source, name, note)
+        store.save_annotation(conn, source, name, note, status, tags)
 
+
+def all_tags() -> list[str]:
+    with closing(connect()) as conn:
+        return queries.all_tags(conn)
 
 def delete_note(source: str, name: str) -> None:
     with closing(connect()) as conn:

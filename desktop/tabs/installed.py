@@ -1,7 +1,7 @@
 from nicegui import ui
 from desktop import data
 
-_state = {'search': '', 'source': '', 'show_all': False}
+_state = {'search': '', 'source': '', 'show_all': False, 'status': ''}
 
 _ELLIPSIS = 'max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;'
 COLUMNS = [
@@ -11,6 +11,7 @@ COLUMNS = [
      'style': _ELLIPSIS, 'headerStyle': _ELLIPSIS},
     {'name': 'note', 'label': 'Note', 'field': 'note', 'align': 'left', 'sortable': True,
      'style': _ELLIPSIS, 'headerStyle': _ELLIPSIS},
+    {'name': 'status', 'label': 'Status', 'field': 'status', 'align': 'left', 'sortable': True},
 ]
 
 
@@ -47,6 +48,9 @@ def _open_detail(row: dict) -> None:
                     on_click=lambda: (ui.clipboard.write(cmd), ui.notify('Copied')),
                 ).props('flat dense round size=sm')
         _field('First seen', (row.get('first_seen') or '')[:10] or 'unknown')
+        _field('Status', (row.get('status') or 'none').capitalize())
+        if row.get('tags'):
+            _field('Tags', row['tags'])
         projs = data.projects_of(row['source'], row['name'])
         _field('In projects', ', '.join(projs) if projs else 'None')
         _field('Your note', row.get('note') or 'No note yet. Add one in the Notes tab.', wrap=True)
@@ -59,12 +63,14 @@ def _open_detail(row: dict) -> None:
 @ui.refreshable
 def package_table():
     rows = data.installed(
-        search=_state['search'], source=_state['source'], show_all=_state['show_all']
+        search=_state['search'], source=_state['source'], show_all=_state['show_all'],
+        status=_state['status']
     )
     for r in rows:
         r['id'] = f"{r['source']}/{r['name']}"
         r['note'] = r['note'] or ''
         r['summary'] = r['summary'] or ''
+        r['status'] = r['status'] or ''
     by_id = {r['id']: r for r in rows}
 
     ui.label(f'{len(rows)} packages').classes('text-xs text-grey-6 px-3 pb-1')
@@ -109,6 +115,10 @@ def build() -> None:
             value=_state['source'],
             on_change=lambda e: _set(source=e.value),
         ).props('dense outlined').classes('w-36')
+        ui.select(
+            {'': 'Any status', 'keep': 'Keep', 'review': 'Review', 'remove': 'Remove'},
+            value='', on_change=lambda e: _set(status=e.value or ''),
+        ).props('dense outlined').classes('w-32')
         ui.switch('Base system', on_change=lambda e: _set(show_all=e.value))
         btn = ui.button('Sync', icon='sync').props('dense no-caps')
         btn.on_click(lambda: _sync(btn))
