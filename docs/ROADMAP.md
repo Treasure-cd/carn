@@ -1,8 +1,8 @@
-Data modelling of packages, both regular and annotated (the "extra").
-Fetching it via CLI (apt, etc underneath), built around core
-Building GUI wrappers around core
+Data modelling of packages, both regular and annotated (the "extra"). [tick]
+Fetching it via CLI (apt, etc underneath), built around core [tick]
+Building GUI wrappers around core [tick]
 "General" downloads, GUI wrapper around the fetch.
-Project creation
+Project creation [tick]
 Reverse search around CLI
 Description of each package via tldr
 Dashboard.

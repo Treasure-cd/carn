@@ -27,8 +27,8 @@ def _field(label: str, value: str, wrap: bool = False):
 
 
 def _open_detail(row: dict) -> None:
-    """Read-only. Notes are edited in the Notes tab."""
-    with ui.dialog() as dlg, ui.card().classes('w-[480px] max-w-full'):
+    # read-only
+    with ui.dialog() as dlg, ui.card().classes('w-[480px] max-w-full h-[400px]'):
         ui.label(row['name']).classes('text-lg font-medium')
         ui.label(f"{row['source']} · {row.get('version') or 'unknown version'}").classes('text-sm text-grey-7')
         _field('Description', row.get('summary') or 'No description')
@@ -77,8 +77,8 @@ def package_table():
     tbl = ui.table(
         columns=COLUMNS, rows=rows, row_key='id',
         pagination={'rowsPerPage': 0},
-    ).props('flat dense virtual-scroll no-data-label="Nothing found. Try Sync."')
-    tbl.classes('w-full cursor-pointer').style('height: calc(100vh - 130px)')
+    ).props('flat dense virtual-scroll no-data-label="Nothing found. Hit Sync and see if something comes up."')
+    tbl.classes('w-full cursor-pointer').style('height: calc(100vh - 188px)')
     tbl.on('rowClick', lambda e: _open_detail(by_id[e.args[1]['id']]))
 
 
@@ -120,6 +120,6 @@ def build() -> None:
             value='', on_change=lambda e: _set(status=e.value or ''),
         ).props('dense outlined').classes('w-32')
         ui.switch('Base system', on_change=lambda e: _set(show_all=e.value))
-        btn = ui.button('Sync', icon='sync').props('dense no-caps')
+        btn = ui.button('Sync', icon='sync').props('unelevated dense no-caps').classes('px-3')
         btn.on_click(lambda: _sync(btn))
     package_table()

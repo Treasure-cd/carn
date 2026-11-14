@@ -12,11 +12,7 @@ def open_picker(
     mark: Callable[[dict], str | None] | None = None,
     keep_open: bool = False,
 ) -> None:
-    """Search any scanned package and hand the chosen row to on_pick.
-
-    mark(row) returns a tooltip string to show a check icon on that row, or None.
-    keep_open leaves the dialog up so several packages can be picked in a row.
-    """
+    # keep_open leaves the dialog up so several packages can be picked in a row
     def pick(pkg: dict) -> None:
         if keep_open:
             on_pick(pkg)
@@ -42,7 +38,7 @@ def open_picker(
                         with ui.item_section().props('side'):
                             ui.icon('check_circle', size='xs').tooltip(tip)
             if len(rows) > 50:
-                ui.label('Showing the first 50. Type to narrow it down.').classes('text-xs text-grey-6 p-2')
+                ui.label('Carn is showing the first 50 it can grab, help it by searching to narrow down.').classes('text-xs text-grey-6 p-2')
 
     with context.client.content, ui.dialog() as dlg, ui.card().classes('w-[520px] max-w-full'):
         ui.label(title).classes('text-lg font-medium')

@@ -2,6 +2,31 @@ from nicegui import context, ui
 from desktop import theme
 from desktop.tabs import installed, notes, projects
 
+ui.add_head_html('''
+    <style>
+        /* Width and height of the scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+        /* Track (background) */
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 5px;
+        }
+        /* Thumb (the draggable slider) */
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 5px;
+        }
+        /* Thumb on hover */
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
+''', shared=True)
+
+
 
 @ui.page('/')
 def index():

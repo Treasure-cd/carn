@@ -19,13 +19,13 @@ COLUMNS = [
 
 
 def _changed() -> None:
-    """A note was saved or deleted: refresh both tabs."""
+    # refreshing for changes made to notes
     notes_table.refresh()
     installed.refresh()
 
 
 def _open_editor(pkg: dict) -> None:
-    """The only place notes are written. pkg needs source, name; summary/note/removed_at optional."""
+    # notes are written
     current_tags = [t for t in (pkg.get('tags') or '').split(', ') if t]
     existing = bool(pkg.get('note') or pkg.get('status') or current_tags)
 
@@ -94,8 +94,8 @@ def notes_table() -> None:
     tbl = ui.table(
         columns=COLUMNS, rows=rows, row_key='id',
         pagination={'rowsPerPage': 0},
-    ).props('flat dense virtual-scroll no-data-label="No notes yet. Click Add note."')
-    tbl.classes('w-full cursor-pointer').style('height: calc(100vh - 130px)')
+    ).props('flat dense virtual-scroll no-data-label="No notes yet. Try adding one?"')
+    tbl.classes('w-full cursor-pointer').style('height: calc(100vh - 188px)')
     tbl.on('rowClick', lambda e: _open_editor(by_id[e.args[1]['id']]))
 
 
@@ -114,5 +114,5 @@ def build() -> None:
             {'': 'Any status', 'keep': 'Keep', 'review': 'Review', 'remove': 'Remove'},
             value='', on_change=lambda e: (_state.update(status=e.value or ''), notes_table.refresh()),
         ).props('dense outlined').classes('w-32')
-        ui.button('Add note', icon='add', on_click=_open_picker).props('dense no-caps')
+        ui.button('Add note', icon='add', on_click=_open_picker).props('unelevated dense no-caps').classes('px-3')
     notes_table()

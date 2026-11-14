@@ -1,4 +1,3 @@
-# desktop/tabs/projects.py
 import sqlite3
 
 from nicegui import context, ui
@@ -23,7 +22,7 @@ def _select(project_id: int) -> None:
 
 
 def _open_form(project: dict | None = None) -> None:
-    """Create a project, or edit/delete an existing one."""
+    # project actions
     armed = {'delete': False}
 
     def save() -> None:
@@ -96,7 +95,7 @@ def projects_view() -> None:
     with ui.row().classes('w-full no-wrap gap-0'):
         with ui.column().classes('w-64 shrink-0 gap-0 p-2'):
             ui.button('New project', icon='add', on_click=lambda: _open_form()).props(
-                'dense no-caps').classes('w-full mb-2')
+                'unelevated dense no-caps').classes('w-full mb-2')
             with ui.list().props('dense').classes('w-full'):
                 for p in projects:
                     item = ui.item(on_click=lambda p=p: _select(p['id']))
@@ -120,7 +119,7 @@ def projects_view() -> None:
                         ui.label(current['description']).classes('text-sm text-grey-7')
                 ui.button('Edit', icon='edit', on_click=lambda: _open_form(current)).props('flat dense no-caps')
                 ui.button('Add package', icon='add', on_click=lambda: _add_packages(current)).props(
-                    'dense no-caps')
+                    'unelevated dense no-caps').classes('px-3')
 
             rows = data.project_packages(current['id'])
             for r in rows:
@@ -130,7 +129,7 @@ def projects_view() -> None:
             tbl = ui.table(
                 columns=COLUMNS, rows=rows, row_key='id', pagination={'rowsPerPage': 0},
             ).props('flat dense virtual-scroll no-data-label="Empty. Click Add package."')
-            tbl.classes('w-full').style('height: calc(100vh - 190px)')
+            tbl.classes('w-full').style('height: calc(100vh - 160px)')
             tbl.add_slot('body-cell-actions', '''
                 <q-td :props="props">
                     <q-btn flat dense round size="sm" icon="close"

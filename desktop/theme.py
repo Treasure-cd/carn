@@ -1,6 +1,6 @@
 from nicegui import ui
 
-
+# trying to use your ubuntu theme and accent (so it looks "native")
 def system_accent(fallback='#a05ab4') -> str:
     try:
         import gi

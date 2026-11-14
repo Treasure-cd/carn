@@ -9,6 +9,8 @@ from carn.sync import ALL_SCANNERS, sync_all
 SOURCES = [s.name for s in ALL_SCANNERS]
 _TEMPLATES = {s.name: s.install_template for s in ALL_SCANNERS}
 
+# all this sorta just gets stuff from the databse and makes it translatable for ui stuff
+# including functions that kind of helps ui
 
 def install_cmd(source: str, name: str) -> str:
     template = _TEMPLATES.get(source, '')
