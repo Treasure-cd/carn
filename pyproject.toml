@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "carn"
+version = "0.1.0"
+description = "Keep track of what's installed on your Linux machine, and why."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.optional-dependencies]
+gui = ["nicegui==4.0.0"]
+
+[project.scripts]
+carn = "carn.__main__:main"
+carn-gui = "desktop.main:main"
+
+[tool.setuptools.packages.find]
+include = ["carn*", "desktop*"]

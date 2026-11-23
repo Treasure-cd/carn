@@ -47,5 +47,9 @@ def index():
             projects.build()
 
 
-if __name__ in {'__main__', '__mp_main__'}:
+def main():
     ui.run(title='Carn', native=True, window_size=(900, 600), reload=False, dark=None)
+
+
+if __name__ in {'__main__', '__mp_main__'}:
+    main()

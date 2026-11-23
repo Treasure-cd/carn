@@ -51,7 +51,7 @@ The db lives at `~/.local/share/carn/carn.db`.
 
 ## Sources
 
-apt, snap
+apt, snap, flatpak, bin, appimage
 
 ## Ideas / later
 
