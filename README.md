@@ -81,3 +81,4 @@ apt, snap, flatpak, bin, appimage, pipx
 - Downloads manager, yet to decide what I want concerning that
 - Reverse search with cli (relatively easy addition)
 - Deleting packages from carn
+- Other Linux distro-specific package manager scanners
